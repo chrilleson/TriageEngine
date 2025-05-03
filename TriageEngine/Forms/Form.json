@@ -1,0 +1,52 @@
+﻿{
+  "FormId": "TestForm",
+  "Questions": [
+    {
+      "Id": 1,
+      "Type": 2,
+      "Text": "What is your name?"
+    },
+    {
+      "Id": 2,
+      "Type": 0,
+      "Text": "Do you like pizza?",
+      "Options": {
+        "1": "Yes",
+        "2": "No"
+      },
+      "Rules":[
+        {
+          "Condition": "x == 1",
+          "GotoResultId": 1
+        },
+        {
+          "Condition": "x == 2",
+          "GotoQuestionId": 3
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Type": 1,
+      "Text": "What is your favorite color?",
+      "Options": {
+        "1": "Red",
+        "2": "Blue",
+        "3": "Green"
+      },
+      "Rules": [
+        {
+          "Condition": "x == 1",
+          "Action": "log",
+          "GotoResultId": 1
+        }
+      ]
+    }
+  ],
+  "Results": [
+    {
+      "Id": 1,
+      "Text": "Thank you for your response!"
+    }
+  ]
+}

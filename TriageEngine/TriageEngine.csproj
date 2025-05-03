@@ -6,4 +6,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+        <Content Include="Forms\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
 </Project>
