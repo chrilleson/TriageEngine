@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriageEngine", "TriageEngine\TriageEngine.csproj", "{089EE369-4842-41EB-8241-BD3B47C155CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriageEngine.Test", "TriageEngine.Test\TriageEngine.Test.csproj", "{7F3B73B4-43B7-4932-8F74-5D463514D4DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{089EE369-4842-41EB-8241-BD3B47C155CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{089EE369-4842-41EB-8241-BD3B47C155CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{089EE369-4842-41EB-8241-BD3B47C155CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{089EE369-4842-41EB-8241-BD3B47C155CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F3B73B4-43B7-4932-8F74-5D463514D4DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F3B73B4-43B7-4932-8F74-5D463514D4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F3B73B4-43B7-4932-8F74-5D463514D4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F3B73B4-43B7-4932-8F74-5D463514D4DA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
