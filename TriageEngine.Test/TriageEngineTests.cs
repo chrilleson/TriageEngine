@@ -17,6 +17,5 @@ public class TriageEngineTests
         result.Questions.Count().ShouldBe(3);
     }
 
-    private static TriageEngine CreateSut() =>
-        new TriageEngine();
+    private static TriageEngine CreateSut() => new();
 }

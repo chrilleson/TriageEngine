@@ -37,7 +37,7 @@
       "Rules": [
         {
           "Condition": "x == 1",
-          "Action": "log",
+          "Action": "LogInformation:Test",
           "GotoResultId": 1
         }
       ]
