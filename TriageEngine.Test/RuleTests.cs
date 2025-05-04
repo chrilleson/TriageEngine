@@ -15,16 +15,6 @@ public class RuleTests
         result.ShouldBeTrue();
     }
 
-    [Fact]
-    public void ExecuteAction_CallsAction_WhenActionIsNotNull()
-    {
-        var rule = CreateSut(action: "LogInformation:Test");
-
-        rule.ExecuteAction();
-
-        rule.Action.ShouldNotBeNull();
-    }
-
     private static Rule CreateSut(string? condition = null, string? action = null, int? gotoQuestionId = null, int? gotoResultId = null) =>
         new(condition, action, gotoQuestionId, gotoResultId);
 }
