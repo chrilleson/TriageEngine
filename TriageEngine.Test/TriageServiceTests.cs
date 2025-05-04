@@ -1,21 +1,20 @@
-﻿using Shouldly;
-using TriageEngine.Models;
+﻿using TriageEngine.Models;
 
 namespace TriageEngine.Test;
 
-public class TriageEngineTests
+public class TriageServiceTests
 {
     [Fact]
     public void ProcessTriage_ReturnsTriage()
     {
-        var triageEngine = CreateSut();
+        var triageService = CreateSut();
 
-        var result = triageEngine.ProcessTriage("Form");
+        var result = triageService.ProcessTriage("Form");
 
         result.ShouldBeAssignableTo<Triage>();
         result.FormId.ShouldBe("TestForm");
         result.Questions.Count().ShouldBe(3);
     }
 
-    private static TriageEngine CreateSut() => new();
+    private static TriageService CreateSut() => new();
 }

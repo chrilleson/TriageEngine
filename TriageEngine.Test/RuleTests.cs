@@ -1,5 +1,4 @@
-﻿using Shouldly;
-using Rule = TriageEngine.Models.Rule;
+﻿using Rule = TriageEngine.Models.Rule;
 
 namespace TriageEngine.Test;
 
