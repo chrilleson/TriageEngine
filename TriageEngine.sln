@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriageEngine", "TriageEngin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriageEngine.Test", "TriageEngine.Test\TriageEngine.Test.csproj", "{7F3B73B4-43B7-4932-8F74-5D463514D4DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriageEngine.Console", "TriageEngine.Console\TriageEngine.Console.csproj", "{5FDD5103-B0F8-4EA8-9262-8F7020805197}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{7F3B73B4-43B7-4932-8F74-5D463514D4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F3B73B4-43B7-4932-8F74-5D463514D4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F3B73B4-43B7-4932-8F74-5D463514D4DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FDD5103-B0F8-4EA8-9262-8F7020805197}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FDD5103-B0F8-4EA8-9262-8F7020805197}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FDD5103-B0F8-4EA8-9262-8F7020805197}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FDD5103-B0F8-4EA8-9262-8F7020805197}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

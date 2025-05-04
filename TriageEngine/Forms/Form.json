@@ -5,7 +5,12 @@
     {
       "Id": 1,
       "Type": 2,
-      "Text": "What is your name?"
+      "Text": "What is your name?",
+      "Rules": [
+        {
+          "GotoQuestionId": 2
+        }
+      ]
     },
     {
       "Id": 2,
@@ -38,7 +43,11 @@
       "Rules": [
         {
           "Condition": "x == 1",
-          "Action": "LogInformation:Test",
+          "ActionString": "LogInformation:Test",
+          "GotoResultId": 1
+        },
+        {
+          "ActionString": "LogInformation:DefaultRule",
           "GotoResultId": 1
         }
       ]

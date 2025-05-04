@@ -5,20 +5,20 @@ namespace TriageEngine;
 
 public class TriageEngine
 {
-    public Question? NextQuestion => _nextQuestion;
+    public Question CurrentQuestion { get; }
+
+    public Question? NextQuestion { get; private set; }
+
     public Result Result => _result!;
     public bool IsComplete => _result != null;
 
     private readonly Triage _triage;
-    private readonly Question _currentQuestion;
     private Result? _result;
-    private Question? _nextQuestion;
-    private Action? _action;
 
     private TriageEngine(Triage triage, Question currentQuestion, Result? result)
     {
+        CurrentQuestion = currentQuestion;
         _triage = triage;
-        _currentQuestion = currentQuestion;
         _result = result;
     }
 
@@ -33,16 +33,16 @@ public class TriageEngine
 
     public void ProcessAnswer(string answer)
     {
-        var rule = _currentQuestion.Rules?.FirstOrDefault(x => x.Condition != null && Rule.EvaluateAnswer(x.Condition, int.Parse(answer))) ?? throw new InvalidOperationException("No valid rule found.");
+        var rule = CurrentQuestion.Rules?.FirstOrDefault(x => (x.Condition != null && Rule.EvaluateAnswer(x.Condition, int.Parse(answer))) || x.Condition == null) ?? throw new InvalidOperationException("No valid rule found.");
         if (!string.IsNullOrEmpty(rule.ActionString))
         {
-            _action = ParseAction(rule.ActionString);
-            _action?.Invoke();
+            var action = ParseAction(rule.ActionString);
+            action?.Invoke();
         }
 
         if (rule.GotoQuestionId is not null)
         {
-            _nextQuestion = _triage.Questions.SingleOrDefault(x => x.Id == rule.GotoQuestionId);
+            NextQuestion = _triage.Questions.SingleOrDefault(x => x.Id == rule.GotoQuestionId);
             return;
         }
 
@@ -52,10 +52,8 @@ public class TriageEngine
         }
     }
 
-    private static Action? ParseAction(string? action)
+    private static Action? ParseAction(string action)
     {
-        if (string.IsNullOrEmpty(action)) return null;
-
         var parts = action.Split(':', 2);
         if (!Enum.TryParse<ActionTypes>(parts[0], true, out var actionType))
         {
