@@ -100,7 +100,6 @@ public class TriageEngineTests
             "What is your age?",
             QuestionType.Text,
             null,
-            null,
             [
                 new Rule("x > 18", $"{ActionTypes.LogInformation.ToString()}:Adult", 2, null),
                 new Rule("x < 18", $"{ActionTypes.LogInformation.ToString()}:Child", null, 1)
@@ -111,7 +110,6 @@ public class TriageEngineTests
             "Question 2",
             QuestionType.SingleChoice,
             new Dictionary<int, string> {{ 1, "Option 1" }, { 2, "Option 2" }},
-            null,
             [
                 new Rule("x == 1", $"{ActionTypes.LogInformation.ToString()}:Option1", null, 1),
                 new Rule("x == 2", $"{ActionTypes.LogInformation.ToString()}:Option2", 1, null)
