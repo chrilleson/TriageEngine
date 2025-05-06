@@ -8,6 +8,7 @@
       "Text": "What is your name?",
       "Rules": [
         {
+          "Condition": "!string.IsNullOrEmpty(x)",
           "GotoQuestionId": 2
         }
       ]
@@ -42,7 +43,7 @@
       },
       "Rules": [
         {
-          "Condition": "x == 1",
+          "Condition": "x.Any(y => y == 1)",
           "ActionString": "LogInformation:Test",
           "GotoResultId": 1
         },

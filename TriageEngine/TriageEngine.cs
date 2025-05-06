@@ -33,23 +33,68 @@ public class TriageEngine
 
     public void ProcessAnswer(string answer)
     {
-        var rule = CurrentQuestion.Rules?.FirstOrDefault(x => (x.Condition != null && Rule.EvaluateAnswer(x.Condition, int.Parse(answer))) || x.Condition == null) ?? throw new InvalidOperationException("No valid rule found.");
-        if (!string.IsNullOrEmpty(rule.ActionString))
+        if (!ValidateAnswer(answer))
         {
-            var action = ParseAction(rule.ActionString);
-            action?.Invoke();
+            throw new InvalidOperationException("Invalid answer.");
         }
 
-        if (rule.GotoQuestionId is not null)
+        foreach (var rule in GetRules(answer))
         {
-            NextQuestion = _triage.Questions.SingleOrDefault(x => x.Id == rule.GotoQuestionId);
-            return;
+            if (!string.IsNullOrEmpty(rule.ActionString))
+            {
+                var action = ParseAction(rule.ActionString);
+                action?.Invoke();
+            }
+
+            if (rule.GotoQuestionId is not null)
+            {
+                NextQuestion = _triage.Questions.SingleOrDefault(x => x.Id == rule.GotoQuestionId);
+                return;
+            }
+
+            if (rule.GotoResultId is not null)
+            {
+                _result = _triage.Results.SingleOrDefault(x => x.Id == rule.GotoResultId);
+            }
+        }
+    }
+
+    private IEnumerable<Rule> GetRules(string answer)
+    {
+        var rulesWithCondition = CurrentQuestion.Type switch
+        {
+            QuestionType.Text => CurrentQuestion.Rules?
+                .Where(x => x.Condition != null && Rule.EvaluateAnswer(x.Condition, answer)),
+            QuestionType.SingleChoice => CurrentQuestion.Rules?
+                .Where(x => x.Condition != null && Rule.EvaluateAnswer(x.Condition, int.Parse(answer))),
+            QuestionType.MultipleChoice => CurrentQuestion.Rules?
+                .Where(x => x.Condition != null && Rule.EvaluateAnswer(x.Condition, answer.Split(',').Select(int.Parse))),
+            QuestionType.FileUpload => throw new NotImplementedException(),
+            _ => throw new NotSupportedException($"Question type {CurrentQuestion.Type} is not supported.")
+        };
+
+        if (rulesWithCondition?.Any() is true)
+        {
+            return rulesWithCondition;
         }
 
-        if (rule.GotoResultId is not null)
+        var defaultRules = CurrentQuestion.Rules?
+            .Where(x => x.Condition == null)
+            .ToList();
+
+        return defaultRules ?? throw new InvalidOperationException("No valid rule found.");
+    }
+
+    private bool ValidateAnswer(string answer)
+    {
+        return CurrentQuestion.Type switch
         {
-            _result = _triage.Results.SingleOrDefault(x => x.Id == rule.GotoResultId);
-        }
+            QuestionType.Text => !string.IsNullOrWhiteSpace(answer),
+            QuestionType.SingleChoice => int.TryParse(answer, out _),
+            QuestionType.MultipleChoice => answer.Split(',').All(x => int.TryParse(x, out _)),
+            QuestionType.FileUpload => throw new NotImplementedException(),
+            _ => throw new NotSupportedException($"Question type {CurrentQuestion.Type} is not supported.")
+        };
     }
 
     private static Action? ParseAction(string action)

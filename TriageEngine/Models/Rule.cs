@@ -18,15 +18,15 @@ public record Rule
         GotoResultId = gotoResultId;
     }
 
-    public static bool EvaluateAnswer(string condition, int answer)
+    public static bool EvaluateAnswer<T>(string condition, T answer)
     {
-        var compiledCondition = CompileCondition(condition);
+        var compiledCondition = CompileCondition<T>(condition);
         return compiledCondition(answer);
     }
 
-    private static Func<int, bool> CompileCondition(string condition)
+    private static Func<TIn, bool> CompileCondition<TIn>(string condition)
     {
-        var parameter = Expression.Parameter(typeof(int), "x");
+        var parameter = Expression.Parameter(typeof(TIn), "x");
 
         var expression = System.Linq.Dynamic.Core.DynamicExpressionParser.ParseLambda(
             [parameter],
@@ -34,7 +34,7 @@ public record Rule
             condition
         );
 
-        return (Func<int, bool>)expression.Compile();
+        return (Func<TIn, bool>)expression.Compile();
     }
 
     public void Deconstruct(out string? condition, out string? actionstring, out int? gotoQuestionId, out int? gotoResultId)
