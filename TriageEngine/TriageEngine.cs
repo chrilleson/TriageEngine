@@ -1,10 +1,18 @@
 ﻿using System.Text.Json;
+using TriageEngine.Actions.Factory;
 using TriageEngine.Models;
 
 namespace TriageEngine;
 
 public class TriageEngine : ITriageEngine
 {
+    private readonly IActionFactory _actionFactory;
+
+    public TriageEngine(IActionFactory actionFactory)
+    {
+        _actionFactory = actionFactory;
+    }
+
     public TriageState GetInitialState(Triage triage, string? savedStateJson = null)
     {
         if (string.IsNullOrEmpty(savedStateJson))
@@ -35,8 +43,7 @@ public class TriageEngine : ITriageEngine
         {
             if (!string.IsNullOrEmpty(rule.ActionString))
             {
-                var action = ParseAction(rule.ActionString);
-                action?.Invoke();
+                _actionFactory.Create(rule.ActionString)?.Execute();
             }
 
             if (rule.GotoQuestionId is not null)
@@ -90,21 +97,4 @@ public class TriageEngine : ITriageEngine
             QuestionType.FileUpload => throw new NotImplementedException(),
             _ => throw new NotSupportedException($"Question type {currentQuestion.Type} is not supported.")
         };
-
-    private static Action? ParseAction(string action)
-    {
-        var parts = action.Split(':', 2);
-        if (!Enum.TryParse<ActionTypes>(parts[0], true, out var actionType))
-        {
-            return null;
-        }
-
-        var actionValue = parts.Length > 1 ? parts[1] : null;
-
-        return actionType switch
-        {
-            ActionTypes.LogInformation => () => Console.WriteLine(actionValue),
-            _ => null
-        };
-    }
 }

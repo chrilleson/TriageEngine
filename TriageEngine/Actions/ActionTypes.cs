@@ -1,4 +1,4 @@
-﻿namespace TriageEngine.Models;
+﻿namespace TriageEngine.Actions;
 
 public enum ActionTypes
 {

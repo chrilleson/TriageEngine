@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using TriageEngine.Actions;
+using TriageEngine.Actions.Factory;
 using TriageEngine.Models;
 
 namespace TriageEngine.Test;
@@ -12,7 +14,7 @@ public class TriageEngineTests
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var engineState = JsonSerializer.Serialize(new EngineState(null, null));
-        var sut = CreateSut();
+        var (sut, _) = CreateSut();
 
         var result = sut.GetInitialState(triage, engineState);
 
@@ -28,7 +30,7 @@ public class TriageEngineTests
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var engineState = JsonSerializer.Serialize(new EngineState(null, 1));
-        var sut = CreateSut();
+        var (sut, _) = CreateSut();
 
         var result = sut.GetInitialState(triage, engineState);
 
@@ -44,7 +46,7 @@ public class TriageEngineTests
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var engineState = JsonSerializer.Serialize(new EngineState(null, 2));
-        var sut = CreateSut();
+        var (sut, _) = CreateSut();
 
         var result = sut.GetInitialState(triage, engineState);
 
@@ -60,7 +62,7 @@ public class TriageEngineTests
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var triageState = new TriageState(triage.Questions.First());
-        var sut = CreateSut();
+        var (sut, actionFactory) = CreateSut();
 
         var result = sut.ProcessAnswer("1", triageState, triage);
 
@@ -68,16 +70,17 @@ public class TriageEngineTests
         result.NextQuestion.Id.ShouldBe(2);
         result.NextQuestion.Text.ShouldBe("Question 2");
         result.IsComplete.ShouldBeFalse();
+        actionFactory.Received(1).Create($"{ActionTypes.LogInformation.ToString()}:Adult");
     }
 
     [Fact]
-    public void ProcessAnswer_ValidAnswer_ReturnsResult()
+    public void ProcessAnswer_ValidAnswer_ReturnsResult()   
     {
         var questions = CreateQuestions();
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var triageState = new TriageState(triage.Questions.Single(x => x.Id == 2));
-        var sut = CreateSut();
+        var (sut, actionFactory) = CreateSut();
 
         var result = sut.ProcessAnswer("1", triageState, triage);
 
@@ -86,9 +89,16 @@ public class TriageEngineTests
         result.Result.ShouldNotBeNull();
         result.Result.Id.ShouldBe(1);
         result.Result.Text.ShouldBe("Result 1");
+        actionFactory.Received(1).Create($"{ActionTypes.LogInformation.ToString()}:Option1");
     }
 
-    private static TriageEngine CreateSut() => new();
+    private static (TriageEngine, IActionFactory) CreateSut()
+    {
+        var actionFactroy = Substitute.For<IActionFactory>();
+        var sut = new TriageEngine(actionFactroy);
+
+        return (sut, actionFactroy);
+    }
 
     private static Triage CreateTriage(string formId = "TestForm", int firstQuestionId = 1, IEnumerable<Question>? questions = null, IEnumerable<Result>? results = null) =>
         new(

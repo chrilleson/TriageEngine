@@ -2,6 +2,8 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using TriageEngine;
 using TriageEngine.Models;
 
@@ -9,8 +11,15 @@ Console.OutputEncoding = Encoding.UTF8;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddScoped<ITriageService, TriageService>();
-builder.Services.AddScoped<ITriageEngine, TriageEngine.TriageEngine>();
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console(theme: AnsiConsoleTheme.Sixteen)
+    .CreateLogger();
+
+builder.Logging.AddSerilog();
+
+builder.Services.AddSerilog(dispose: true);
+builder.Services.AddTriageEngine();
 
 using var host = builder.Build();
 
