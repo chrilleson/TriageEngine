@@ -8,7 +8,7 @@
       "Text": "What is your name?",
       "Rules": [
         {
-          "Condition": "!string.IsNullOrEmpty(x)",
+          "Condition": "x != \"Chris\"",
           "GotoQuestionId": 2
         }
       ]
