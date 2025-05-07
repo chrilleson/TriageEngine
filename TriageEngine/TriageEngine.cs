@@ -3,42 +3,35 @@ using TriageEngine.Models;
 
 namespace TriageEngine;
 
-public class TriageEngine
+public class TriageEngine : ITriageEngine
 {
-    public Question CurrentQuestion { get; }
-
-    public Question? NextQuestion { get; private set; }
-
-    public Result Result => _result!;
-    public bool IsComplete => _result != null;
-
-    private readonly Triage _triage;
-    private Result? _result;
-
-    private TriageEngine(Triage triage, Question currentQuestion, Result? result)
+    public TriageState GetInitialState(Triage triage, string? savedStateJson = null)
     {
-        CurrentQuestion = currentQuestion;
-        _triage = triage;
-        _result = result;
+        if (string.IsNullOrEmpty(savedStateJson))
+        {
+            var firstQuestion = triage.Questions.Single(x => x.Id == triage.FirstQuestionId);
+            return new TriageState(firstQuestion);
+        }
+
+        var state = JsonSerializer.Deserialize<EngineState>(savedStateJson);
+        var question = triage.Questions.SingleOrDefault(x => x.Id == state?.QuestionId)
+                       ?? triage.Questions.Single(x => x.Id == triage.FirstQuestionId);
+        var result = triage.Results.SingleOrDefault(x => x.Id == state?.ResultId);
+
+        return new TriageState(question, null, result);
     }
 
-    public static TriageEngine Create(Triage triage, string engineState)
+    public TriageState ProcessAnswer(string answer, TriageState currentState, Triage triage)
     {
-        var state = JsonSerializer.Deserialize<EngineState>(engineState);
-        var question = triage.Questions.SingleOrDefault(x => x.Id == state?.QuestionId) ?? triage.Questions.Single(x => x.Id == triage.FirstQuestionId);
-        var result = triage.Results.SingleOrDefault(x => x.Id == state?.ResultId) ?? null;
-
-        return new TriageEngine(triage, question, result);
-    }
-
-    public void ProcessAnswer(string answer)
-    {
-        if (!ValidateAnswer(answer))
+        if (!ValidateAnswer(answer, currentState.CurrentQuestion))
         {
             throw new InvalidOperationException("Invalid answer.");
         }
 
-        foreach (var rule in GetRules(answer))
+        Question? nextQuestion = null;
+        Result? result = null;
+
+        foreach (var rule in GetRules(answer, currentState.CurrentQuestion))
         {
             if (!string.IsNullOrEmpty(rule.ActionString))
             {
@@ -48,29 +41,32 @@ public class TriageEngine
 
             if (rule.GotoQuestionId is not null)
             {
-                NextQuestion = _triage.Questions.SingleOrDefault(x => x.Id == rule.GotoQuestionId);
-                return;
+                nextQuestion = triage.Questions.SingleOrDefault(x => x.Id == rule.GotoQuestionId);
+                return new TriageState(currentState.CurrentQuestion, nextQuestion, null);
             }
 
             if (rule.GotoResultId is not null)
             {
-                _result = _triage.Results.SingleOrDefault(x => x.Id == rule.GotoResultId);
+                result = triage.Results.SingleOrDefault(x => x.Id == rule.GotoResultId);
             }
         }
+
+        return new TriageState(currentState.CurrentQuestion, nextQuestion, result);
+
     }
 
-    private IEnumerable<Rule> GetRules(string answer)
+    private static IEnumerable<Rule> GetRules(string answer, Question currentQuestion)
     {
-        var rulesWithCondition = CurrentQuestion.Type switch
+        var rulesWithCondition = currentQuestion.Type switch
         {
-            QuestionType.Text => CurrentQuestion.Rules?
+            QuestionType.Text => currentQuestion.Rules?
                 .Where(x => x.Condition != null && Rule.EvaluateAnswer(x.Condition, answer)),
-            QuestionType.SingleChoice => CurrentQuestion.Rules?
+            QuestionType.SingleChoice => currentQuestion.Rules?
                 .Where(x => x.Condition != null && Rule.EvaluateAnswer(x.Condition, int.Parse(answer))),
-            QuestionType.MultipleChoice => CurrentQuestion.Rules?
+            QuestionType.MultipleChoice => currentQuestion.Rules?
                 .Where(x => x.Condition != null && Rule.EvaluateAnswer(x.Condition, answer.Split(',').Select(int.Parse))),
             QuestionType.FileUpload => throw new NotImplementedException(),
-            _ => throw new NotSupportedException($"Question type {CurrentQuestion.Type} is not supported.")
+            _ => throw new NotSupportedException($"Question type {currentQuestion.Type} is not supported.")
         };
 
         if (rulesWithCondition?.Any() is true)
@@ -78,24 +74,22 @@ public class TriageEngine
             return rulesWithCondition;
         }
 
-        var defaultRules = CurrentQuestion.Rules?
+        var defaultRules = currentQuestion.Rules?
             .Where(x => x.Condition == null)
             .ToList();
 
         return defaultRules ?? throw new InvalidOperationException("No valid rule found.");
     }
 
-    private bool ValidateAnswer(string answer)
-    {
-        return CurrentQuestion.Type switch
+    private static bool ValidateAnswer(string answer, Question currentQuestion) =>
+        currentQuestion.Type switch
         {
             QuestionType.Text => !string.IsNullOrWhiteSpace(answer),
             QuestionType.SingleChoice => int.TryParse(answer, out _),
             QuestionType.MultipleChoice => answer.Split(',').All(x => int.TryParse(x, out _)),
             QuestionType.FileUpload => throw new NotImplementedException(),
-            _ => throw new NotSupportedException($"Question type {CurrentQuestion.Type} is not supported.")
+            _ => throw new NotSupportedException($"Question type {currentQuestion.Type} is not supported.")
         };
-    }
 
     private static Action? ParseAction(string action)
     {

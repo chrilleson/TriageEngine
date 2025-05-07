@@ -10,15 +10,14 @@ Console.OutputEncoding = Encoding.UTF8;
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddScoped<ITriageService, TriageService>();
+builder.Services.AddScoped<ITriageEngine, TriageEngine.TriageEngine>();
 
 using var host = builder.Build();
 
-var triageService = host.Services.GetRequiredService<ITriageService>();
-
-await Run(triageService);
+await Run(host.Services);
 return;
 
-static async Task Run(ITriageService triageService)
+static async Task Run(IServiceProvider serviceProvider)
 {
     var menuItems = MenuItems();
     Console.WriteLine("Select a form to run:");
@@ -35,10 +34,13 @@ static async Task Run(ITriageService triageService)
 
     Console.Clear();
 
+    var triageService = serviceProvider.GetRequiredService<ITriageService>();
+
     var triage = await triageService.ProcessTriageAsync(formId);
+    var triageEngine = serviceProvider.GetRequiredService<ITriageEngine>();
 
     Console.Clear();
-    ProcessTriage(triage);
+    ProcessTriage(triage, triageEngine);
 }
 
 static IReadOnlyDictionary<int, string> MenuItems()
@@ -53,19 +55,19 @@ static IReadOnlyDictionary<int, string> MenuItems()
     return dictionary;
 }
 
-static void ProcessTriage(Triage triage)
+static void ProcessTriage(Triage triage, ITriageEngine triageEngine)
 {
     var engineState = new EngineState(null, null);
 
     while (true)
     {
-        var engine = TriageEngine.TriageEngine.Create(triage, JsonSerializer.Serialize(engineState));
+        var triageState = triageEngine.GetInitialState(triage, JsonSerializer.Serialize(engineState));
 
         Console.Clear();
-        Console.WriteLine($"Question: {engine.CurrentQuestion.Text}");
-        if (engine is { CurrentQuestion.Options.Count: var count } && count != 0)
+        Console.WriteLine($"Question: {triageState.CurrentQuestion.Text}");
+        if (triageState is { CurrentQuestion.Options.Count: var count } && count != 0)
         {
-            Console.WriteLine($"Options: {string.Join(", ", engine.CurrentQuestion.Options!.Select(x => $"{x.Key}: {x.Value}"))}");
+            Console.WriteLine($"Options: {string.Join(", ", triageState.CurrentQuestion.Options!.Select(x => $"{x.Key}: {x.Value}"))}");
         }
 
         Console.WriteLine("Answer: ");
@@ -76,12 +78,12 @@ static void ProcessTriage(Triage triage)
             continue;
         }
 
-        engine.ProcessAnswer(answer);
-        engineState = new EngineState(engine.NextQuestion?.Id, engine.Result?.Id);
+        triageState = triageEngine.ProcessAnswer(answer, triageState, triage);
+        engineState = new EngineState(triageState.NextQuestion?.Id, triageState.Result?.Id);
 
-        if (!engine.IsComplete) continue;
+        if (!triageState.IsComplete) continue;
 
-        Console.WriteLine($"Result: {engine.Result!.Text}");
+        Console.WriteLine($"Result: {triageState.Result!.Text}");
         break;
     }
 }

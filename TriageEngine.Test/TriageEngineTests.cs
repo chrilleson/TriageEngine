@@ -12,12 +12,13 @@ public class TriageEngineTests
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var engineState = JsonSerializer.Serialize(new EngineState(null, null));
+        var sut = CreateSut();
 
-        var engine = TriageEngine.Create(triage, engineState);
+        var result = sut.GetInitialState(triage, engineState);
 
-        engine.ShouldBeAssignableTo<TriageEngine>();
-        engine.IsComplete.ShouldBeFalse();
-        engine.NextQuestion.ShouldBeNull();
+        result.ShouldBeAssignableTo<TriageState>();
+        result.IsComplete.ShouldBeFalse();
+        result.NextQuestion.ShouldBeNull();
     }
 
     [Fact]
@@ -27,12 +28,13 @@ public class TriageEngineTests
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var engineState = JsonSerializer.Serialize(new EngineState(null, 1));
+        var sut = CreateSut();
 
-        var engine = TriageEngine.Create(triage, engineState);
+        var result = sut.GetInitialState(triage, engineState);
 
-        engine.ShouldBeAssignableTo<TriageEngine>();
-        engine.IsComplete.ShouldBeTrue();
-        engine.NextQuestion.ShouldBeNull();
+        result.ShouldBeAssignableTo<TriageState>();
+        result.IsComplete.ShouldBeTrue();
+        result.NextQuestion.ShouldBeNull();
     }
 
     [Fact]
@@ -42,12 +44,13 @@ public class TriageEngineTests
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
         var engineState = JsonSerializer.Serialize(new EngineState(null, 2));
+        var sut = CreateSut();
 
-        var engine = TriageEngine.Create(triage, engineState);
+        var result = sut.GetInitialState(triage, engineState);
 
-        engine.ShouldBeAssignableTo<TriageEngine>();
-        engine.IsComplete.ShouldBeFalse();
-        engine.NextQuestion.ShouldBeNull();
+        result.ShouldBeAssignableTo<TriageState>();
+        result.IsComplete.ShouldBeFalse();
+        result.NextQuestion.ShouldBeNull();
     }
 
     [Fact]
@@ -56,15 +59,15 @@ public class TriageEngineTests
         var questions = CreateQuestions();
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
-        var engineState = JsonSerializer.Serialize(new EngineState(null, null));
-        var engine = TriageEngine.Create(triage, engineState);
+        var triageState = new TriageState(triage.Questions.First());
+        var sut = CreateSut();
 
-        engine.ProcessAnswer("20");
+        var result = sut.ProcessAnswer("1", triageState, triage);
 
-        engine.NextQuestion.ShouldNotBeNull();
-        engine.NextQuestion.Id.ShouldBe(2);
-        engine.NextQuestion.Text.ShouldBe("Question 2");
-        engine.IsComplete.ShouldBeFalse();
+        result.NextQuestion.ShouldNotBeNull();
+        result.NextQuestion.Id.ShouldBe(2);
+        result.NextQuestion.Text.ShouldBe("Question 2");
+        result.IsComplete.ShouldBeFalse();
     }
 
     [Fact]
@@ -73,17 +76,19 @@ public class TriageEngineTests
         var questions = CreateQuestions();
         var results = CreateResults();
         var triage = CreateTriage(questions: questions, results: results);
-        var engineState = JsonSerializer.Serialize(new EngineState(2, null));
-        var engine = TriageEngine.Create(triage, engineState);
+        var triageState = new TriageState(triage.Questions.Single(x => x.Id == 2));
+        var sut = CreateSut();
 
-        engine.ProcessAnswer("1");
+        var result = sut.ProcessAnswer("1", triageState, triage);
 
-        engine.NextQuestion.ShouldBeNull();
-        engine.IsComplete.ShouldBeTrue();
-        engine.Result.ShouldNotBeNull();
-        engine.Result.Id.ShouldBe(1);
-        engine.Result.Text.ShouldBe("Result 1");
+        result.NextQuestion.ShouldBeNull();
+        result.IsComplete.ShouldBeTrue();
+        result.Result.ShouldNotBeNull();
+        result.Result.Id.ShouldBe(1);
+        result.Result.Text.ShouldBe("Result 1");
     }
+
+    private static TriageEngine CreateSut() => new();
 
     private static Triage CreateTriage(string formId = "TestForm", int firstQuestionId = 1, IEnumerable<Question>? questions = null, IEnumerable<Result>? results = null) =>
         new(
@@ -97,12 +102,12 @@ public class TriageEngineTests
     [
         new(
             1,
-            "What is your age?",
-            QuestionType.Text,
-            null,
+            "Are you older than 18?",
+            QuestionType.SingleChoice,
+            new Dictionary<int, string> {{ 1, "Yes" }, { 2, "No" }},
             [
-                new Rule("x > 18", $"{ActionTypes.LogInformation.ToString()}:Adult", 2, null),
-                new Rule("x < 18", $"{ActionTypes.LogInformation.ToString()}:Child", null, 1)
+                new Rule("x == 1", $"{ActionTypes.LogInformation.ToString()}:Adult", 2, null),
+                new Rule("x == 2", $"{ActionTypes.LogInformation.ToString()}:Child", null, 1)
             ]
         ),
         new(
