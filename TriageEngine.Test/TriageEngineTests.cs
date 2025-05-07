@@ -74,7 +74,7 @@ public class TriageEngineTests
     }
 
     [Fact]
-    public void ProcessAnswer_ValidAnswer_ReturnsResult()   
+    public void ProcessAnswer_ValidAnswer_ReturnsResult()
     {
         var questions = CreateQuestions();
         var results = CreateResults();

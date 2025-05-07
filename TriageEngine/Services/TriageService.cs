@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using TriageEngine.Models;
 
-namespace TriageEngine;
+namespace TriageEngine.Services;
 
 public class TriageService : ITriageService
 {

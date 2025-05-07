@@ -1,6 +1,6 @@
 ﻿using TriageEngine.Models;
 
-namespace TriageEngine;
+namespace TriageEngine.Services;
 
 public interface ITriageService
 {

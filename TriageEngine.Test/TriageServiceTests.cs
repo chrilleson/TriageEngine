@@ -1,4 +1,5 @@
 ﻿using TriageEngine.Models;
+using TriageEngine.Services;
 
 namespace TriageEngine.Test;
 

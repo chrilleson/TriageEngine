@@ -6,6 +6,7 @@ using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 using TriageEngine;
 using TriageEngine.Models;
+using TriageEngine.Services;
 
 Console.OutputEncoding = Encoding.UTF8;
 
